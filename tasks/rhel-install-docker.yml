@@ -1,0 +1,74 @@
+---
+# tasks - rhel-install-docker.yml for nerve4-docker
+
+- name: Remove old version of Docker on Rhel 7.x
+  ansible.builtin.yum:
+    name: "{{ item }}"
+    state: absent
+  loop: "{{ rhel_cl_pkgs }}"
+  when:
+    - ansible_distribution_major_version == "7"
+
+- name: Remove old version of Docker on Rhel 8.x / Rocky Linux
+  ansible.builtin.dnf:
+    name: "{{ item }}"
+    state: absent
+  loop: "{{ rhel_cl_pkgs }}"
+  when:
+    (ansible_distribution_major_version == "8") or
+    (ansible_distribution in "Rocky")
+
+- name: Add Docker repository
+  become: true
+  ansible.builtin.shell: |
+    yum-config-manager \
+    --add-repo \
+    https://download.docker.com/linux/centos/docker-ce.repo
+  args:
+    creates: /etc/yum.repos.d/centos_o.repo
+  when:
+    - ansible_distribution_major_version == "7"
+
+- name: Add Docker repository
+  become: true
+  ansible.builtin.shell: |
+    dnf config-manager \
+    --add-repo \
+    https://download.docker.com/linux/centos/docker-ce.repo
+  args:
+    creates: /etc/yum.repos.d/centos_o.repo
+  when:
+    (ansible_distribution_major_version == "8") or
+    (ansible_distribution in "Rocky")
+
+- name: Update Cache on Rhel 7.x
+  become: true
+  ansible.builtin.shell: |
+    yum update -y
+  when:
+    - ansible_distribution_major_version == "7"
+
+- name: Update Cache on Rhel 8.x
+  become: true
+  ansible.builtin.shell: |
+    dnf update -y
+  when:
+    (ansible_distribution_major_version == "8") or
+    (ansible_distribution in "Rocky")
+
+- name: Install Docker on Rhel 7.x
+  ansible.builtin.yum:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ rhel_pkgs }}"
+  when:
+    - ansible_distribution_major_version == "7"
+
+- name: Install Docker on Rhel 8.x / Rocky Linux
+  ansible.builtin.dnf:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ rhel_pkgs }}"
+  when:
+    (ansible_distribution_major_version == "8") or
+    (ansible_distribution in "Rocky")

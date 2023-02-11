@@ -1,0 +1,8 @@
+---
+# tasks - run-docker.yml for nerve4-docker
+
+- name: Enable and restart Docker service
+  ansible.builtin.systemd:
+    name: "docker"
+    state: restarted
+    enabled: yes
