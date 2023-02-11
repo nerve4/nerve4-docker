@@ -1,0 +1,36 @@
+---
+# tasks - ubuntu-install-docker.yml for nerve4-docker
+
+- name: Remove old version of Docker on Ubuntu
+  ansible.builtin.apt: 
+    name: "{{ item }}"
+    state: absent
+  loop: "{{ ubuntu_cl_pkgs }}"
+
+- name: Install Docker on Ubuntu
+  ansible.builtin.apt: 
+    name: "{{ item }}"
+    state: present
+  loop: "{{ ubuntu_pre_pkgs }}"
+
+- name: Remove old Docker Repo
+  ansible.builtin.file:
+    path: /etc/apt/sources.list.d/docker.list
+    state: absent
+
+- name: Add Docker official GPG key
+  become: true
+  ansible.builtin.shell: |
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+
+- name: Set up the Docker repository
+  become: true
+  ansible.builtin.shell: |
+    sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable"
+    sudo apt-cache policy docker-ce
+
+- name: Install Docker on Ubuntu
+  ansible.builtin.apt: 
+    name: "{{ item }}"
+    state: present
+  loop: "{{ ubuntu_pkgs }}"
